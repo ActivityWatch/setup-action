@@ -1,0 +1,70 @@
+name: 'Setup ActivityWatch'
+description: 'Installs ActivityWatch, with optional fakedata'
+inputs:
+  aw-server:
+    description: 'server implementation to use'
+    required: true
+    default: 'aw-server'
+  aw-version:
+    description: 'version to use'
+    required: true
+    default: 'v0.10.0'
+  aw-testing:
+    description: 'set to false to run in prod'
+    required: true
+    default: true
+  fakedata: 
+    description: 'wether to generate fakedata'
+    required: true
+    default: false
+outputs:
+runs:
+  using: "composite"
+  steps:
+    - run: echo Setting up ${{ inputs.aw-server }} ${{ inputs.aw-version }}
+      shell: bash
+
+    - name: Download and run an ActivityWatch release
+      if: ${{ inputs.aw-version != 'master' }}
+      env:
+          AW_TESTING: ${{ inputs.aw-testing }}
+      run: |
+        wget --no-verbose -O activitywatch.zip https://github.com/ActivityWatch/activitywatch/releases/download/${{ inputs.aw-version }}/activitywatch-${{ inputs.aw-version }}-linux-x86_64.zip
+        unzip activitywatch.zip
+        ./activitywatch/${{ inputs.aw-server }}/${{ inputs.aw-server }} $([ "$AW_TESTING" != "false" ] && echo '--testing') &
+        
+    - name: Download aw-server-rust nightly
+      if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        repo: ActivityWatch/aw-server-rust
+        # Required, workflow file name or ID
+        workflow: build.yml
+        # Optional, the status or conclusion of a completed workflow to search for
+        # Can be one of a workflow conclusion::
+        # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
+        # Or a workflow status:
+        # "completed", "in_progress", "queued"
+        # Default: "completed,success"
+        workflow_conclusion: "completed"  # FIXME: Don't try to use builds that fail on Linux
+        branch: master
+        event: push
+        # Uploaded artifact name,
+        name: binaries-Linux  # NOTE: debug build
+        # Directory where to extract artifact
+        path: aw-server-rust
+
+    - name: Run aw-server-rust nightly
+      if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
+      run: |
+        chmod +x ./aw-server-rust/debug/aw-server
+        ./aw-server-rust/debug/aw-server --testing &
+
+    - name: Insert fake data into aw-server
+      if: ${{ inputs.fakedata == true }}
+      env:
+          AW_TESTING: ${{ inputs.aw-testing }}
+      run: |
+        pip install git+https://github.com/ActivityWatch/aw-client.git
+        wget --no-verbose -O fakedata.py https://github.com/ActivityWatch/aw-fakedata/raw/5158825ee9a8d50fa890518156f5a516cea79dd3/aw-fakedata.py
+        python3 fakedata.py
