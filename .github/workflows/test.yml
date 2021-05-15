@@ -16,9 +16,11 @@ jobs:
         python-version: ['3.7']
         aw-server: ["aw-server", "aw-server-rust"]
         aw-version: ["v0.10.0"]
-        include:
-        - aw-server: "aw-server-rust"
-          aw-version: "master"
+        aw-testing: ["true", "false"]
+        #include:
+        #- aw-server: "aw-server-rust"
+        #  aw-version: "master"
+        #  aw-testing: "true"
 
     steps:
     - uses: actions/checkout@v2
@@ -39,6 +41,8 @@ jobs:
         fakedata: true
 
     - name: Test requests to the server
+      env:
+          AW_TESTING: ${{ matrix.aw-testing }}
       run: |
           sleep 5;
           curl localhost:$([ "$AW_TESTING" == "true" ] && echo '5666' || echo '5600')/api/0/info

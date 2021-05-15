@@ -25,49 +25,45 @@ runs:
 
     - name: Download and run an ActivityWatch release
       shell: bash
-      if: ${{ inputs.aw-version != 'master' }}
       env:
+          AW_SERVER: ${{ inputs.aw-server }}
+          AW_VERSION: ${{ inputs.aw-version }}
           AW_TESTING: ${{ inputs.aw-testing }}
       run: |
-        wget --no-verbose -O activitywatch.zip https://github.com/ActivityWatch/activitywatch/releases/download/${{ inputs.aw-version }}/activitywatch-${{ inputs.aw-version }}-linux-x86_64.zip
-        unzip activitywatch.zip
-        ./activitywatch/${{ inputs.aw-server }}/${{ inputs.aw-server }} $([ "$AW_TESTING" != "false" ] && echo '--testing') &
+        [[ ${{ inputs.aw-server != 'master' }} ]] && ./scripts/start-aw-server.sh;
+        #[[ ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }} ]] && ./scripts/start-aw-server-rust-master.sh;
         
-    - name: Download aw-server-rust nightly
-      shell: bash
-      if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
-      uses: dawidd6/action-download-artifact@v2
-      with:
-        repo: ActivityWatch/aw-server-rust
-        # Required, workflow file name or ID
-        workflow: build.yml
-        # Optional, the status or conclusion of a completed workflow to search for
-        # Can be one of a workflow conclusion::
-        # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
-        # Or a workflow status:
-        # "completed", "in_progress", "queued"
-        # Default: "completed,success"
-        workflow_conclusion: "completed"  # FIXME: Don't try to use builds that fail on Linux
-        branch: master
-        event: push
-        # Uploaded artifact name,
-        name: binaries-Linux  # NOTE: debug build
-        # Directory where to extract artifact
-        path: aw-server-rust
+    #- name: Download aw-server-rust nightly
+    #  shell: bash
+    #  uses: dawidd6/action-download-artifact@v2
+    #  with:
+    #    repo: ActivityWatch/aw-server-rust
+    #    # Required, workflow file name or ID
+    #    workflow: build.yml
+    #    # Optional, the status or conclusion of a completed workflow to search for
+    #    # Can be one of a workflow conclusion::
+    #    # "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
+    #    # Or a workflow status:
+    #    # "completed", "in_progress", "queued"
+    #    # Default: "completed,success"
+    #    workflow_conclusion: "completed"  # FIXME: Don't try to use builds that fail on Linux
+    #    branch: master
+    #    event: push
+    #    # Uploaded artifact name,
+    #    name: binaries-Linux  # NOTE: debug build
+    #    # Directory where to extract artifact
+    #    path: aw-server-rust
 
-    - name: Run aw-server-rust nightly
-      shell: bash
-      if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
-      run: |
-        chmod +x ./aw-server-rust/debug/aw-server
-        ./aw-server-rust/debug/aw-server --testing &
+    #- name: Run aw-server-rust nightly
+    #  shell: bash
+    #  if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
+    #  run: |
+    #    chmod +x ./aw-server-rust/debug/aw-server
+    #    ./aw-server-rust/debug/aw-server --testing &
 
     - name: Insert fake data into aw-server
       shell: bash
-      if: ${{ inputs.fakedata == true }}
       env:
           AW_TESTING: ${{ inputs.aw-testing }}
       run: |
-        pip install git+https://github.com/ActivityWatch/aw-client.git
-        wget --no-verbose -O fakedata.py https://github.com/ActivityWatch/aw-fakedata/raw/5158825ee9a8d50fa890518156f5a516cea79dd3/aw-fakedata.py
-        python3 fakedata.py
+        [[ ${{ inputs.fakedata == 'true' }} ]] && ./scripts/fakedata.sh;
