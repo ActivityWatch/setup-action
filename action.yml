@@ -30,9 +30,10 @@ runs:
           AW_VERSION: ${{ inputs.aw-version }}
           AW_TESTING: ${{ inputs.aw-testing }}
       run: |
-        [[ ${{ inputs.aw-server != 'master' }} ]] && ./scripts/start-aw-server.sh;
+        [[ ${{ inputs.aw-server != 'master' }} ]] && ${{ github.action_path }}/scripts/start-aw-server.sh;
         #[[ ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }} ]] && ./scripts/start-aw-server-rust-master.sh;
         
+    # FIXME: Composite actions don't support running other actions...
     #- name: Download aw-server-rust nightly
     #  shell: bash
     #  uses: dawidd6/action-download-artifact@v2
@@ -66,4 +67,4 @@ runs:
       env:
           AW_TESTING: ${{ inputs.aw-testing }}
       run: |
-        [[ ${{ inputs.fakedata == 'true' }} ]] && ./scripts/fakedata.sh;
+        [[ ${{ inputs.fakedata == 'true' }} ]] && ${{ github.action_path }}/scripts/fakedata.sh;
