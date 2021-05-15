@@ -17,7 +17,6 @@ inputs:
     description: 'wether to generate fakedata'
     required: true
     default: false
-outputs:
 runs:
   using: "composite"
   steps:
@@ -25,6 +24,7 @@ runs:
       shell: bash
 
     - name: Download and run an ActivityWatch release
+      shell: bash
       if: ${{ inputs.aw-version != 'master' }}
       env:
           AW_TESTING: ${{ inputs.aw-testing }}
@@ -34,6 +34,7 @@ runs:
         ./activitywatch/${{ inputs.aw-server }}/${{ inputs.aw-server }} $([ "$AW_TESTING" != "false" ] && echo '--testing') &
         
     - name: Download aw-server-rust nightly
+      shell: bash
       if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
       uses: dawidd6/action-download-artifact@v2
       with:
@@ -55,12 +56,14 @@ runs:
         path: aw-server-rust
 
     - name: Run aw-server-rust nightly
+      shell: bash
       if: ${{ inputs.aw-server == 'aw-server-rust' && inputs.aw-version == 'master' }}
       run: |
         chmod +x ./aw-server-rust/debug/aw-server
         ./aw-server-rust/debug/aw-server --testing &
 
     - name: Insert fake data into aw-server
+      shell: bash
       if: ${{ inputs.fakedata == true }}
       env:
           AW_TESTING: ${{ inputs.aw-testing }}
