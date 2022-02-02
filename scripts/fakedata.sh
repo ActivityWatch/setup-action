@@ -1,3 +1,5 @@
 pip install git+https://github.com/ActivityWatch/aw-client.git
-wget --no-verbose -O fakedata.py https://github.com/ActivityWatch/aw-fakedata/raw/5158825ee9a8d50fa890518156f5a516cea79dd3/aw-fakedata.py
+
+REV=63a357dbc7b8b832ec44cc55cafd6622ce909590
+wget --no-verbose -O fakedata.py https://github.com/ActivityWatch/aw-fakedata/raw/$REV/aw-fakedata.py
 python3 fakedata.py
