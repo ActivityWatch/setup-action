@@ -67,4 +67,4 @@ runs:
       env:
           AW_TESTING: ${{ inputs.aw-testing }}
       run: |
-        [[ ${{ inputs.fakedata == 'true' }} ]] && ${{ github.action_path }}/scripts/fakedata.sh;
+        [[ ${{ inputs.fakedata == 'true' }} ]] && (yes || true) | ${{ github.action_path }}/scripts/fakedata.sh;
